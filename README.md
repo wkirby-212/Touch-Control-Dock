@@ -2,7 +2,7 @@
 
 A touch-first control surface built as a small proof-of-concept:
 - A minimal **OBS frontend plugin** (adds a simple help dock).
-- A **touch-friendly HTML UI** intended for a **Browser Dock**.
+- A **touch-friendly HTML UI** intended for a **touch panel**.
 - Control is performed via the built-in **websocket v5** server.
 
 This UI is designed for fast, reliable operation on PC Attached touch Panels:
