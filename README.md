@@ -215,3 +215,6 @@ Then pin key items to favourites.
 
 This proof-of-concept code is intended as a starting point.
 Use and adapt freely within your project.
+
+Development builds can be found here. Be aware these may be buggy, or have features not fully implimented
+https://github.com/wkirby-212/Touch-Control-Dock-Horizontal-fork
