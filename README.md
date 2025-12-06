@@ -5,7 +5,7 @@ A touch-first control surface for OBS built as a small proof-of-concept:
 - A **touch-friendly HTML UI** intended for an OBS **Browser Dock**.
 - Control is performed via the built-in **obs-websocket v5** server.
 
-This UI is designed for fast, reliable operation on tablets and touch monitors:
+This UI is designed for fast, reliable operation on PC Attached touch Panels:
 - Big buttons and sliders.
 - Sticky section navigation.
 - A favorites panel for your most-used scenes and audio.
