@@ -152,7 +152,7 @@ A top-of-mixer control that lets you:
 
 When filtering is ON:
 - The UI shows only the groups you selected
-  (designed for clean cast-only tablet views).
+  (designed for clean cast-only Touch Panel views).
 
 ### Scene Collections & Profiles
 Dropdowns to switch:
@@ -167,7 +167,7 @@ Dropdowns to switch:
   The UI includes some fallback logic, but older builds may behave differently.
 - Some inputs may appear “audio-capable” even if they’re not meaningful
   mixer channels in your workflow.
-  The group filter + favorites are the intended way to keep your tablet view clean.
+  The group filter + favorites are the intended way to keep your Touch Panel view clean.
 - Meter event formats can differ; the UI uses a conservative best-effort parse.
 
 ---
