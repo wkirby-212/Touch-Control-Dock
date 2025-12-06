@@ -1,9 +1,9 @@
-# OBS Touch Control Dock — v6
+# Touch Control Dock — v6
 
-A touch-first control surface for OBS built as a small proof-of-concept:
+A touch-first control surface built as a small proof-of-concept:
 - A minimal **OBS frontend plugin** (adds a simple help dock).
-- A **touch-friendly HTML UI** intended for an OBS **Browser Dock**.
-- Control is performed via the built-in **obs-websocket v5** server.
+- A **touch-friendly HTML UI** intended for a **Browser Dock**.
+- Control is performed via the built-in **websocket v5** server.
 
 This UI is designed for fast, reliable operation on PC Attached touch Panels:
 - Big buttons and sliders.
@@ -57,7 +57,7 @@ Download the contents of the repository, and drop the extracted files into
   - make a new directory `touch-control-dock` 
   - Extract files to this directory. 
   - go to `*\touch-control-dock\data\touch-ui\` and open index.html 
-  - Input your Host port and OBS Password then hit connect.
+  - Input your Host port and Password then hit connect.
 
 Alternative:
 1. Start from the official OBS plugin template.
