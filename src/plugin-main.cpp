@@ -22,16 +22,10 @@ bool obs_module_load(void)
 
     auto *label = new QLabel(
         "Touch Control Dock loaded.\n\n"
-        "This plugin ships a touch UI page at:\n"
+        "This package includes a touch-first HTML control surface.\n"
+        "Load it as an OBS Browser Dock:\n"
         "  data/touch-ui/index.html\n\n"
-        "Quick use:\n"
-        "1) In OBS: Tools -> WebSocket Server Settings\n"
-        "   Enable the server and set a password.\n"
-        "2) In OBS: View -> Docks -> Custom Browser Docks\n"
-        "   Add a dock named 'Touch Control'.\n"
-        "3) Point it to your local index.html file using file:///...\n"
-        "   or serve the folder with a local web server.\n\n"
-        "This help dock exists to confirm the plugin is loaded."
+        "This native dock is only a lightweight confirmation/help panel."
     );
 
     label->setWordWrap(true);

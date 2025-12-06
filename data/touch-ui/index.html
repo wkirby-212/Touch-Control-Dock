@@ -140,7 +140,7 @@
     font-weight: 600;
   }
 
-  .scene-card-head, .fav-card-head{
+  .head-row{
     display:flex;
     justify-content: space-between;
     align-items:center;
@@ -156,9 +156,6 @@
 
   .fav-panel{
     margin: 10px 0 18px 0;
-  }
-  .fav-section{
-    margin-top: 10px;
   }
 
   .fav-grid{
@@ -285,6 +282,12 @@
     color: var(--muted);
     margin-left: 6px;
   }
+
+  .live-grid{
+    display:grid;
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    gap: var(--gap);
+  }
 </style>
 </head>
 <body>
@@ -343,6 +346,7 @@
     <div class="pill-row">
       <button class="small" data-jump="top"><span aria-hidden="true">⬆️</span> Top</button>
       <button class="small" data-jump="favorites-section"><span aria-hidden="true">⭐</span> Favs</button>
+      <button class="small" data-jump="live-section"><span aria-hidden="true">🔴</span> Live</button>
       <button class="small" data-jump="studio-section"><span aria-hidden="true">🎬</span> Studio</button>
       <button class="small" data-jump="scenes-section"><span aria-hidden="true">🗂️</span> Scenes</button>
       <button class="small" data-jump="transitions-section"><span aria-hidden="true">✨</span> Transitions</button>
@@ -354,8 +358,8 @@
 
 <h2 id="favorites-section">Favorites</h2>
 <div id="favoritesPanel" class="card fav-panel">
-  <div class="fav-section">
-    <div class="scene-card-head">
+  <div>
+    <div class="head-row">
       <h3 style="margin:0;">Favorite Scenes</h3>
       <span id="favScenesCount" class="badge">0</span>
     </div>
@@ -364,8 +368,8 @@
 
   <div class="section-divider"></div>
 
-  <div class="fav-section">
-    <div class="scene-card-head">
+  <div>
+    <div class="head-row">
       <h3 style="margin:0;">Favorite Audio</h3>
       <span id="favInputsCount" class="badge">0</span>
     </div>
@@ -373,6 +377,33 @@
   </div>
 
   <div class="hint" style="margin-top:10px;">Tap ☆ on any scene or audio card to add/remove favorites.</div>
+</div>
+
+<h2 id="live-section">Live Controls</h2>
+<div class="card">
+  <div class="live-grid">
+    <div class="card">
+      <div class="head-row">
+        <h3 style="margin:0;">Streaming</h3>
+        <span id="streamBadge" class="badge">Unknown</span>
+      </div>
+      <div class="row" style="margin-top:10px;">
+        <button id="streamToggleBtn" class="primary">Start Stream</button>
+      </div>
+      <div id="streamStatus" class="hint" style="margin-top:6px;"></div>
+    </div>
+
+    <div class="card">
+      <div class="head-row">
+        <h3 style="margin:0;">Recording</h3>
+        <span id="recordBadge" class="badge">Unknown</span>
+      </div>
+      <div class="row" style="margin-top:10px;">
+        <button id="recordToggleBtn" class="primary">Start Record</button>
+      </div>
+      <div id="recordStatus" class="hint" style="margin-top:6px;"></div>
+    </div>
+  </div>
 </div>
 
 <h2 id="studio-section">Studio Mode</h2>
@@ -467,6 +498,13 @@
   const favScenesCount = document.getElementById('favScenesCount');
   const favInputsCount = document.getElementById('favInputsCount');
 
+  const streamToggleBtn = document.getElementById('streamToggleBtn');
+  const recordToggleBtn = document.getElementById('recordToggleBtn');
+  const streamBadge = document.getElementById('streamBadge');
+  const recordBadge = document.getElementById('recordBadge');
+  const streamStatus = document.getElementById('streamStatus');
+  const recordStatus = document.getElementById('recordStatus');
+
   // ---------- Quick Jump ----------
   function jumpTo(id){
     const el = document.getElementById(id);
@@ -488,9 +526,7 @@
   let identified = false;
   let reqCounter = 0;
   const pending = new Map();
-
-  // InputName -> meterBarEl
-  const meterBars = new Map();
+  const meterBars = new Map(); // InputName -> meterBarEl
 
   function setStatus(txt){ connStatus.textContent = txt; }
 
@@ -578,7 +614,6 @@
     try{
       if (!Array.isArray(levels)) return [];
       if (levels.flat) return levels.flat(3);
-      // fallback
       const out = [];
       for (const v of levels){
         if (Array.isArray(v)) out.push(...v);
@@ -616,11 +651,15 @@
         eventType === 'StudioModeStateChanged'){
       loadStudio();
       loadScenesQuick();
-      renderFavoriteScenes(); // keep program markers fresh
+      renderFavoriteScenes();
     }
 
     if (eventType === 'InputMuteStateChanged' || eventType === 'InputVolumeChanged'){
-      renderFavoriteInputs(); // lightweight refresh for fav panel
+      renderFavoriteInputs();
+    }
+
+    if (eventType === 'StreamStateChanged' || eventType === 'RecordStateChanged'){
+      loadLive();
     }
   }
 
@@ -631,6 +670,8 @@
       setStatus('Disconnected.');
       takeBtn.disabled = true;
       studioStatus.textContent = 'Unknown.';
+      streamBadge.textContent = 'Unknown';
+      recordBadge.textContent = 'Unknown';
     };
     ws.onerror = () => setStatus('WebSocket error.');
 
@@ -682,8 +723,8 @@
     favs.has(name) ? favs.delete(name) : favs.add(name);
     setFavScenes([...favs]);
     renderFavoriteScenes();
-    loadScenesQuick(); // update stars
-    loadStudio(); // update stars in program/preview buttons if any
+    loadScenesQuick();
+    loadStudio();
   }
 
   function getFavInputs(){
@@ -698,7 +739,7 @@
     favs.has(name) ? favs.delete(name) : favs.add(name);
     setFavInputs([...favs]);
     renderFavoriteInputs();
-    loadAudio(); // update stars in full list
+    loadAudio();
   }
 
   // ---------- Scene Collections / Profiles ----------
@@ -786,27 +827,107 @@
   refreshCollectionsBtn.onclick = loadSceneCollections;
   refreshProfilesBtn.onclick = loadProfiles;
 
+  // ---------- Live Controls ----------
+  async function loadStreamStatus(){
+    let active = false;
+    let reconnecting = false;
+    let timecode = null;
+
+    try{
+      const r = await call('GetStreamStatus');
+      active = !!r.responseData?.outputActive;
+      reconnecting = !!r.responseData?.outputReconnecting;
+      timecode = r.responseData?.outputTimecode;
+    }catch{
+      // Fallback for newer unified output APIs (best-effort)
+      try{
+        const r = await call('GetOutputStatus', { outputName: 'stream' });
+        active = !!r.responseData?.outputActive;
+        reconnecting = !!r.responseData?.outputReconnecting;
+        timecode = r.responseData?.outputTimecode;
+      }catch{}
+    }
+
+    streamBadge.textContent = active ? (reconnecting ? 'Reconnecting' : 'Live') : 'Off';
+    streamToggleBtn.textContent = active ? 'Stop Stream' : 'Start Stream';
+    streamStatus.textContent = timecode ? `Time: ${timecode}` : '';
+    streamToggleBtn.className = 'primary';
+    return active;
+  }
+
+  async function loadRecordStatus(){
+    let active = false;
+    let paused = false;
+    let timecode = null;
+
+    try{
+      const r = await call('GetRecordStatus');
+      active = !!r.responseData?.outputActive;
+      paused = !!r.responseData?.outputPaused;
+      timecode = r.responseData?.outputTimecode;
+    }catch{
+      try{
+        const r = await call('GetOutputStatus', { outputName: 'record' });
+        active = !!r.responseData?.outputActive;
+        paused = !!r.responseData?.outputPaused;
+        timecode = r.responseData?.outputTimecode;
+      }catch{}
+    }
+
+    recordBadge.textContent = active ? (paused ? 'Paused' : 'Recording') : 'Off';
+    recordToggleBtn.textContent = active ? 'Stop Record' : 'Start Record';
+    recordStatus.textContent = timecode ? `Time: ${timecode}` : '';
+    recordToggleBtn.className = 'primary';
+    return active;
+  }
+
+  async function loadLive(){
+    if (!identified) return;
+    await Promise.allSettled([loadStreamStatus(), loadRecordStatus()]);
+  }
+
+  streamToggleBtn.onclick = async () => {
+    if (!identified) return;
+    let active = false;
+    try{ active = await loadStreamStatus(); }catch{}
+    try{
+      if (active) await call('StopStream');
+      else await call('StartStream');
+    }catch(e){ console.error(e); }
+    loadStreamStatus();
+  };
+
+  recordToggleBtn.onclick = async () => {
+    if (!identified) return;
+    let active = false;
+    try{ active = await loadRecordStatus(); }catch{}
+    try{
+      if (active) await call('StopRecord');
+      else await call('StartRecord');
+    }catch(e){ console.error(e); }
+    loadRecordStatus();
+  };
+
   // ---------- Scenes ----------
   function makeSceneCard(name, isFav){
     const card = document.createElement('div');
     card.className = 'card';
 
     const head = document.createElement('div');
-    head.className = 'scene-card-head';
+    head.className = 'head-row';
+
+    const btn = document.createElement('button');
+    btn.className = 'scene-btn primary';
+    btn.textContent = name;
+    btn.onclick = async () => {
+      try{ await call('SetCurrentProgramScene', { sceneName: name }); } catch {}
+    };
 
     const starBtn = document.createElement('button');
     starBtn.className = 'star tiny';
     starBtn.textContent = isFav ? '★' : '☆';
     starBtn.title = isFav ? 'Remove favorite' : 'Add favorite';
     starBtn.onclick = () => toggleFavScene(name);
-
-    const btn = document.createElement('button');
-    btn.className = 'scene-btn primary';
-    btn.textContent = name;
-    btn.onclick = async () => {
-      try{ await call('SetCurrentProgramScene', { sceneName: name }); }
-      catch(e){ console.error(e); }
-    };
 
     head.appendChild(btn);
     head.appendChild(starBtn);
@@ -857,7 +978,7 @@
       card.className = 'card';
 
       const head = document.createElement('div');
-      head.className = 'fav-card-head';
+      head.className = 'head-row';
 
       const btn = document.createElement('button');
       btn.className = 'scene-btn primary';
@@ -922,10 +1043,11 @@
     for (const sc of scenes){
       const name = sc.sceneName;
 
+      // Preview card
       const pWrap = document.createElement('div');
       pWrap.className = 'card';
       const pHead = document.createElement('div');
-      pHead.className = 'scene-card-head';
+      pHead.className = 'head-row';
 
       const pBtn = document.createElement('button');
       pBtn.className = 'scene-btn';
@@ -945,10 +1067,11 @@
       pWrap.appendChild(pHead);
       previewScenesEl.appendChild(pWrap);
 
+      // Program card
       const prWrap = document.createElement('div');
       prWrap.className = 'card';
       const prHead = document.createElement('div');
-      prHead.className = 'scene-card-head';
+      prHead.className = 'head-row';
 
       const prBtn = document.createElement('button');
       prBtn.className = 'scene-btn primary';
@@ -1055,6 +1178,20 @@
   };
 
   // ---------- Audio grouping + filter ----------
+  function getGroupFilterEnabled(){
+    return localStorage.getItem(LS_GROUP_FILTER_ENABLED) === 'true';
+  }
+  function setGroupFilterEnabled(val){
+    localStorage.setItem(LS_GROUP_FILTER_ENABLED, val ? 'true' : 'false');
+  }
+  function getSelectedGroups(){
+    try{ return JSON.parse(localStorage.getItem(LS_GROUP_FILTER) || '[]'); }
+    catch{ return []; }
+  }
+  function setSelectedGroups(arr){
+    localStorage.setItem(LS_GROUP_FILTER, JSON.stringify(Array.from(new Set(arr))));
+  }
+
   async function getAudioCapableInputs(){
     const resp = await call('GetInputList');
     const inputs = resp.responseData?.inputs ?? [];
@@ -1139,27 +1276,12 @@
       if (!placed) assignments.get('Ungrouped').push(inp);
     }
 
-    // Remove empty groups except Ungrouped
     for (const [g, arr] of Array.from(assignments.entries())){
       if (g !== 'Ungrouped' && (!arr || arr.length === 0)){
         assignments.delete(g);
       }
     }
     return assignments;
-  }
-
-  function getGroupFilterEnabled(){
-    return localStorage.getItem(LS_GROUP_FILTER_ENABLED) === 'true';
-  }
-  function setGroupFilterEnabled(val){
-    localStorage.setItem(LS_GROUP_FILTER_ENABLED, val ? 'true' : 'false');
-  }
-  function getSelectedGroups(){
-    try{ return JSON.parse(localStorage.getItem(LS_GROUP_FILTER) || '[]'); }
-    catch{ return []; }
-  }
-  function setSelectedGroups(arr){
-    localStorage.setItem(LS_GROUP_FILTER, JSON.stringify(Array.from(new Set(arr))));
   }
 
   function filterAssignments(assignments){
@@ -1170,7 +1292,7 @@
 
     const filtered = new Map();
     for (const [g, arr] of assignments.entries()){
-      if (g === 'Ungrouped') continue; // hide ungrouped when filtering unless explicitly selected by name
+      if (g === 'Ungrouped') continue;
       if (selected.has(g)) filtered.set(g, arr);
     }
     return filtered;
@@ -1298,7 +1420,7 @@
     card.className = 'card mixer-item';
 
     const head = document.createElement('div');
-    head.className = 'scene-card-head';
+    head.className = 'head-row';
 
     const title = document.createElement('div');
     title.className = 'name';
@@ -1479,7 +1601,7 @@
     card.className = 'card';
 
     const head = document.createElement('div');
-    head.className = 'fav-card-head';
+    head.className = 'head-row';
 
     const title = document.createElement('div');
     title.className = 'name';
@@ -1580,6 +1702,7 @@
     await Promise.allSettled([
       loadSceneCollections(),
       loadProfiles(),
+      loadLive(),
       loadTransitions(),
       loadScenesQuick(),
       loadStudio(),
