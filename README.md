@@ -51,6 +51,15 @@ This is a feature pack rather than a full build system.
 
 Recommended approach:
 
+Quick Start Guide
+Download the contents of the repository, and drop the extracted files into 
+  - `C:\Program Files\obs-studio\obs-plugins\64bit\
+  - make a new directory `touch-control-dock` 
+  - Extract files to this directory. 
+  - go to `*\touch-control-dock\data\touch-ui\` and open index.html 
+  - Input your Host port and OBS Password then hit connect.
+
+Alternative:
 1. Start from the official OBS plugin template.
 2. Copy:
    - `src/plugin-main.cpp`
