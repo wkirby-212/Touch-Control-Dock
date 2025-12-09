@@ -9,7 +9,6 @@ This UI is designed for fast, reliable operation on PC Attached touch Panels:
 - Big buttons and sliders.
 - Sticky section navigation.
 - A favorites panel for your most-used scenes and audio.
-- Collapsible audio groups with an optional group-only filter.
 
 ---
 
@@ -18,16 +17,10 @@ This UI is designed for fast, reliable operation on PC Attached touch Panels:
 ```
 touch-control-dock/
   README.md
-  src/
-    plugin-main.cpp
   data/
     touch-ui/
       index.html
 ```
-
-### `src/plugin-main.cpp`
-A minimal frontend module that adds a small “Touch Control Help” dock.
-It exists mainly to confirm the plugin is loaded and to provide quick usage notes.
 
 ### `data/touch-ui/index.html`
 The main touch UI. This is what you load in an OBS Browser Dock.
@@ -59,18 +52,6 @@ Download the contents of the repository, and drop the extracted files into
   - go to `*\touch-control-dock\data\touch-ui\` and open index.html 
   - Input your Host port and Password then hit connect.
 
-Alternative:
-1. Start from the official OBS plugin template.
-2. Copy:
-   - `src/plugin-main.cpp`
-   - `data/touch-ui/`
-3. Ensure your build installs the `data/` folder with the plugin.
-
-If you don’t care about the tiny native help dock, you can skip the C++ part:
-the HTML UI can be used standalone with a Browser Dock.
-
----
-
 ## Setup (runtime)
 
 1. **Enable WebSocket**
@@ -84,26 +65,22 @@ the HTML UI can be used standalone with a Browser Dock.
 3. **Point the dock to the UI**
    - Option A (fastest):
      - Use a `file:///` path to `data/touch-ui/index.html`
-   - Option B (more reliable):
+   - Option B If you want to use it on remote devices:
      - Serve the folder on localhost and use an `http://127.0.0.1:PORT/index.html` URL.
 
-4. Enter **Host / Port / Password** in the UI and tap **Connect**.
-
----
+4. Enter **Host / Port / Password** in the UI "Settings" and tap **Connect**.
 
 ## Features
 
-### Quick Jump bar
-A sticky, touch-friendly nav strip for:
-- Top
-- Favorites
-- Studio
-- Scenes
-- Transitions
-- Audio
+- Start Record / Stream
+- Scenes (& Studio)
+- Favourites (pinned items)
+- Audio 
+- Settings
+- Virtual Cam 
 
 ### Favorites
-Stored in your browser’s localStorage:
+Stored in your localStorage:
 - **Favorite Scenes**
   - One-tap program switching.
 - **Favorite Audio**
@@ -111,15 +88,14 @@ Stored in your browser’s localStorage:
 
 To use:
 - Tap ☆ on any scene or audio card to add a favorite.
-- Favorites appear in the top panel.
+- Favorites appear in the Favourites control panel
 
 ### Studio Mode
 - Enable/disable Studio Mode.
 - Preview scene selection.
 - Program scene selection.
-- “Take” button.
-
-### Transitions
+- “Take” button. (transition scene)
+- Transitions
 - Choose current transition.
 - Set duration (ms).
 - Quick transition buttons.
@@ -154,7 +130,9 @@ When filtering is ON:
 - The UI shows only the groups you selected
   (designed for clean cast-only Touch Panel views).
 
-### Scene Collections & Profiles
+### Settings
+- Host connection settings
+- Layout (Auto, Wide, default)
 Dropdowns to switch:
 - Current Scene Collection
 - Current Profile
