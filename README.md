@@ -1,4 +1,4 @@
-# Touch Control Dock — v6
+# Touch Control Dock — v7
 
 A touch-first control surface built as a small proof-of-concept:
 - A minimal **OBS frontend plugin** (adds a simple help dock).
